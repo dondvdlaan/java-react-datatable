@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useApi } from '../shared/Api';
+import { apiSimple, useApi } from '../shared/Api';
+import { Pagination } from '../shared/Pagination';
 import { Spinner } from '../shared/Spinner';
 import { Customer } from '../types/Customer';
 
@@ -7,20 +8,50 @@ import { Customer } from '../types/Customer';
 function App() {
 
   // *** Constant and variables ***
-  const [page, setPage]           = useState(1);
-  const rowsPerPage               = [10,15,25];
-  const [rows,setRows]            = useState<String>("10");
-  const [customers, setCustomer]  = useApi<Customer[]>("all");
+  const arrRowsPerPage                = [10,15,25];
+  const initPayload                   = {draw:1, length: arrRowsPerPage[0], start:0};
+
+  const [page, setPage]               = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState<any>(arrRowsPerPage[0]);
+  const [customers, setCustomer]      = useApi<Customer[] >("POST","all",initPayload);
+  
 
   if(!customers) return(<Spinner item="Customers... " />)
 
   console.log("all ", customers);
+  console.log("rows ", rowsPerPage);
+
+  // *** Functions ***
+  const payload = ()=>({
+    length : rowsPerPage,
+    start : (page -1) * rowsPerPage
+  })
+
   
-  // *************** Event handling ***************
+  // *** Event handling ***
+/**
+ * Change rows per page
+ */
+  const onRefresh = (e: React.ChangeEvent<HTMLSelectElement>) =>{
+    setRowsPerPage(e.target.value);
+    let data ={length : e.target.value, start: 0 }
+    apiSimple("POST","all", data)
+    .then(res=>{
+      console.log("res.data: ", res.data)
+      setCustomer(res.data.data)
+      setPage(1)})
+  }
   /**
    * Set page for Pagination
    */
-   const onSetPage = (page   : number) => setPage(page);
+   const onSetPage = (page: number) =>{
+    console.log("page: ", page)
+    setPage(page);
+    let data ={...payload(), start : (page -1) * rowsPerPage}
+    apiSimple("POST","all", data)
+    .then(res=>setCustomer(res.data.data))
+   } 
+  
   return (
     <>
     	<div className="container">
@@ -29,10 +60,11 @@ function App() {
 			 		<select 
           className  ="form-control" 
           name="state"
-          onChange = {(e)=>{setRows(e.target.value)}}
+          value={rowsPerPage}
+          onChange = {(e)=>{onRefresh(e)}}
           >
-            {rowsPerPage.map(rows =>
-						 <option key={rows} value="10">{rows}</option>
+            {arrRowsPerPage.map(rows =>
+						 <option key={rows} >{rows}</option>
              )}
 					</select>
 		  	</div>
@@ -67,7 +99,13 @@ function App() {
           )}
       </tbody>
     </table>
-  </div>  
+  </div> 
+  <Pagination 
+  currentPage={page} 
+  rows={1000} 
+  rowsPerPage={rowsPerPage} 
+  onSetPage={onSetPage}
+  /> 
 </>
 );
 }

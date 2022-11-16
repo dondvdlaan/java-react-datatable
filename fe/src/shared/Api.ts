@@ -16,13 +16,13 @@ type SetState<T> = Dispatch<SetStateAction<T>>;
  * @param path [string]   - relative path to baseUrl
  * @return, Response Data
  */
-export function useApi<T> (path: string)
+export function useApi<T> (method: Method,path: string, payload = {} )
                           : [T | undefined, SetState<T | undefined>] {
 
   const [data, setData] = useState<T>();
 
   useEffect(() => {
-    api("GET", path, setData);
+    api(method, path, setData, payload);
   }, [path]);
 
   return [data, setData];
@@ -74,9 +74,9 @@ export function api<T>(
     method: method,
     url: `${baseUrl}/${path}`,
     data,
-  }).then((response: AxiosResponse<T>) =>{
-    console.log("res: ", response.data)
-    return response.data})
+  }).then((raw: AxiosResponse<T>) =>{
+    console.log("res: ", raw.data)
+    return raw.data})
     .then((response: any) => {
     return callback(response.data);
   });

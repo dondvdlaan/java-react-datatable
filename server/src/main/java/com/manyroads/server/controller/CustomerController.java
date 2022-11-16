@@ -45,18 +45,19 @@ public class CustomerController {
      *
      * @return allCustomers Iterable     : all customers
      */
-    @GetMapping("/customer/all")
+    //@GetMapping("/customer/all")
+    @PostMapping("/customer/all")
     @ResponseBody
-    public String getAll() {
+    public String getAll(@RequestBody Map<String, Object> params) {
 
         System.out.println("Route getDataForDatatable");
+        System.out.println("params: " + params.toString());
+/*
         Map<String, Object> params = new HashMap<>();
         params.put("draw", 2);
         params.put("length", 10);
         params.put("start", 10);
-
-        System.out.println("params" + params);
-
+*/
         int draw = params.containsKey("draw") ? Integer.parseInt(params.get("draw").toString()) : 1;
         System.out.println("draw: " + draw);
         int length = params.containsKey("length") ? Integer.parseInt(params.get("length").toString()) : 30;
@@ -107,6 +108,7 @@ public class CustomerController {
             cellData.put("firstName", customer.getFirstName());
             cellData.put("lastName", customer.getLastName());
             cellData.put("emailAddress", customer.getEmailAddress());
+            cellData.put("address", customer.getAddress());
             cellData.put("city", customer.getCity());
             cellData.put("country", customer.getCountry());
             cellData.put("phoneNumber", customer.getPhoneNumber());

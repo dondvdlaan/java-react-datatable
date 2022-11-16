@@ -3,7 +3,7 @@ import { ReactNode } from "react"
 interface Props{
     currentPage           : number,
     rows                  : any,
-    rowsPerPage           : number
+    rowsPerPage        : number
     onSetPage(page:number): void,
     children?             : ReactNode;
 }
@@ -28,12 +28,12 @@ export const Pagination = (props:Props) =>{
 
     // Calculate number of pages to display
     const totalPages = Math.ceil(props.rows / props.rowsPerPage);
+
     
     // Define previous button
     if (props.currentPage > 1) previous = props.currentPage -1;
     // Define next button   
-    if (props.currentPage < totalPages) next = props.currentPage +1 ;
-    console.log("next:", next)
+    if (props.currentPage < totalPages) next++;
 
     for (let i = 1; i <= totalPages ; i++) {
         
@@ -68,12 +68,8 @@ export const Pagination = (props:Props) =>{
         </li> 
         
         {/* // Page numbers displayed */}
-        {/* {pageNrsDisplayed.map(pageNr=>pageNr)} */}
+        {pageNrsDisplayed.map(pageNr=>pageNr)}
         
-        <li className="ppage-item disabled">
-          <span className ="page-link">{props.currentPage}</span>
-        </li>
-
         {/* //Next button */}
         <li 
         className="page-item">

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { apiSimple, useApi } from '../shared/Api';
+import { Navbar } from '../shared/Navbar';
 import { Pagination } from '../shared/Pagination';
 import { Spinner } from '../shared/Spinner';
 import { Customer } from '../types/Customer';
@@ -9,37 +10,71 @@ function App() {
 
   // *** Constant and variables ***
   const arrRowsPerPage                = [10,15,25];
-  const initPayload                   = {draw:1, length: arrRowsPerPage[0], start:0};
+  const initSettings                  = { draw:1, 
+                                          pageLength: arrRowsPerPage[0], 
+                                          startPage:0};
 
   const [page, setPage]               = useState(1);
+  const [searchTerm, setSearchTerm]   = useState("");
   const [rowsPerPage, setRowsPerPage] = useState<any>(arrRowsPerPage[0]);
-  const [customers, setCustomer]      = useApi<Customer[] >("POST","all",initPayload);
+  const [ customers, setCustomers,
+          totalPages, setTotalPages]:[any,any,any,any]  
+                                      = useApi("POST","all",initSettings);
   
-
-  if(!customers) return(<Spinner item="Customers... " />)
+ 
+  if(!customers) return(<Spinner item="Loading Customers... " />)
 
   console.log("all ", customers);
   console.log("rows ", rowsPerPage);
 
   // *** Functions ***
   const payload = ()=>({
-    length : rowsPerPage,
-    start : (page -1) * rowsPerPage
+    searchTerm,
+    pageLength : rowsPerPage,
+    startPage : (page -1) * rowsPerPage
   })
 
+    // *** Components ***
+    const SearchDataTable = () =>(
+        <div className="panel-block">
+        <p className="control has-icons-right">
+          <input
+            value={searchTerm}
+            onChange={onSearch}
+            type="text"
+            placeholder="Search Datatable"
+            className="form-control" 
+            autoFocus
+          />
+          <span className="searchSymbol">
+                <i className="searchSymbol" />
+          </span>
+        </p>
+      </div>
+    )
   
-  // *** Event handling ***
+// *** Event handling ***
 /**
  * Change rows per page
  */
-  const onRefresh = (e: React.ChangeEvent<HTMLSelectElement>) =>{
+  const onChangeRowsPerPage = (e: React.ChangeEvent<HTMLSelectElement>) =>{
     setRowsPerPage(e.target.value);
-    let data ={length : e.target.value, start: 0 }
+
+       // Create data payload
+    let data ={
+      pageLength : e.target.value, 
+      startPage: 0,
+      searchTerm: ""
+    }
+    // Send to server
     apiSimple("POST","all", data)
     .then(res=>{
       console.log("res.data: ", res.data)
-      setCustomer(res.data.data)
-      setPage(1)})
+      setCustomers(res.data.data);
+      setTotalPages(res.data.recordsTotal)
+      setPage(1);
+      setSearchTerm("");
+    })
   }
   /**
    * Set page for Pagination
@@ -47,29 +82,64 @@ function App() {
    const onSetPage = (page: number) =>{
     console.log("page: ", page)
     setPage(page);
-    let data ={...payload(), start : (page -1) * rowsPerPage}
+
+    // Create data payload
+    let data ={...payload(), startPage : (page -1) * rowsPerPage}
+    
+    // Send to server
     apiSimple("POST","all", data)
-    .then(res=>setCustomer(res.data.data))
+    .then(res=>setCustomers(res.data.data))
    } 
-  
+ /**
+   * Send search term to server
+   */
+  const onSearch = (e: ChangeEvent<HTMLInputElement>) =>{
+
+    setSearchTerm(e.target.value);
+
+    // Create data payload
+    let data ={
+      pageLength : arrRowsPerPage[0], 
+      startPage: 0,
+      searchTerm: e.target.value
+    }
+
+    // Send to server
+    apiSimple("POST","all", data)
+    .then(res=>{
+      setCustomers(res.data.data);
+      setTotalPages(res.data.recordsTotal)
+      setPage(1);
+      setRowsPerPage(arrRowsPerPage[0]);
+  })
+  }  
+
   return (
     <>
-    	<div className="container">
-		    <h3>Select Number Of Rows</h3>
-				<div className="form-group"> 	
-			 		<select 
-          className  ="form-control" 
-          name="state"
-          value={rowsPerPage}
-          onChange = {(e)=>{onRefresh(e)}}
-          >
-            {arrRowsPerPage.map(rows =>
-						 <option key={rows} >{rows}</option>
-             )}
-					</select>
-		  	</div>
+    <Navbar />
+    	<div className="container mt-3 ">
+        <div className="row">
+          <div className="col">
+            <div className="form-group"> 	
+              <select 
+              className  ="form-control" 
+              name="state"
+              value={rowsPerPage}
+              onChange = {(e)=>{onChangeRowsPerPage(e)}}
+              >
+                {arrRowsPerPage.map(rows =>
+                <option key={rows} >{rows}</option>
+                )}
+              </select>
+            </div>
+          </div>
+          <div className="col text-end">
+            <SearchDataTable />
+          </div>
+	  	  </div>
 	  	</div>
 
+  {/* Datatable */}
   <div className="container">
     <table className="table table-striped">
       <thead>
@@ -85,16 +155,16 @@ function App() {
         </tr>
       </thead>
       <tbody>
-          {customers.map(cust =>
-          <tr key={cust.id}>
-            <th scope="row">{cust.id}</th>
-            <td>{cust.firstName}</td>
-            <td>{cust.lastName}</td>
-            <td>{cust.emailAddress}</td>
-            <td>{cust.address}</td>
-            <td>{cust.city}</td>
-            <td>{cust.country}</td>
-            <td>{cust.phoneNumber}</td>
+          {customers.map((customer: Customer) =>
+          <tr key={customer.id}>
+            <th scope="row">{customer.id}</th>
+            <td>{customer.firstName}</td>
+            <td>{customer.lastName}</td>
+            <td>{customer.emailAddress}</td>
+            <td>{customer.address}</td>
+            <td>{customer.city}</td>
+            <td>{customer.country}</td>
+            <td>{customer.phoneNumber}</td>
           </tr> 
           )}
       </tbody>
@@ -102,7 +172,7 @@ function App() {
   </div> 
   <Pagination 
   currentPage={page} 
-  rows={1000} 
+  totalPages={totalPages} 
   rowsPerPage={rowsPerPage} 
   onSetPage={onSetPage}
   /> 

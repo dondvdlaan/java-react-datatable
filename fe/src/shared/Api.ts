@@ -5,7 +5,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 const baseUrl = process.env.REACT_APP_LOCAL_HOST;
 
 // local utility type
-type SetState<T> = Dispatch<SetStateAction<T>>;
+export type SetState<T> = Dispatch<SetStateAction<T>>;
 
 // *** Functions ***
 
@@ -17,15 +17,21 @@ type SetState<T> = Dispatch<SetStateAction<T>>;
  * @return, Response Data
  */
 export function useApi<T> (method: Method,path: string, payload = {} )
-                          : [T | undefined, SetState<T | undefined>] {
+                          : [T | undefined, SetState<T | undefined>, T | undefined, SetState<T | undefined>] {
 
-  const [data, setData] = useState<T>();
+  const [data, setData]               = useState<T>();
+  const [totalPages, setTotalPages]   = useState<T>();
 
   useEffect(() => {
-    api(method, path, setData, payload);
+    apiSimple(method, path, payload)
+    .then(res=>{
+      console.log("returnData ", res)
+      setData(res.data.data)
+      setTotalPages(res.data.recordsTotal)
+    })
   }, [path]);
 
-  return [data, setData];
+  return [data, setData, totalPages, setTotalPages];
 }
 
 /*
@@ -69,16 +75,18 @@ export function api<T>(
 ): void {
   const url = `${baseUrl}/${path}`;
   console.log("url: ", url);
+
+
   
   axios({
     method: method,
     url: `${baseUrl}/${path}`,
     data,
-  }).then((raw: AxiosResponse<T>) =>{
+  }).then((raw: any) =>{
     console.log("res: ", raw.data)
-    return raw.data})
-    .then((response: any) => {
-    return callback(response.data);
+
+    return {customers: raw.data.data, 
+            totalPages: raw.data.recordsTotal};
   });
 }
 

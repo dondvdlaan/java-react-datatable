@@ -53,19 +53,15 @@ public class CustomerController {
         System.out.println("Route getDataForDatatable");
         System.out.println("params: " + params.toString());
 /*
-        Map<String, Object> params = new HashMap<>();
-        params.put("draw", 2);
-        params.put("length", 10);
-        params.put("start", 10);
 */
         int draw = params.containsKey("draw") ? Integer.parseInt(params.get("draw").toString()) : 1;
         System.out.println("draw: " + draw);
-        int length = params.containsKey("length") ? Integer.parseInt(params.get("length").toString()) : 30;
-        System.out.println("length: " + length);
-        int start = params.containsKey("start") ? Integer.parseInt(params.get("start").toString()) : 30;
-        System.out.println("start: " + start);
+        int pageLength = params.containsKey("pageLength") ? Integer.parseInt(params.get("pageLength").toString()) : 30;
+        System.out.println("pageLength: " + pageLength);
+        int startPage = params.containsKey("startPage") ? Integer.parseInt(params.get("startPage").toString()) : 30;
+        System.out.println("startPage: " + startPage);
 
-        int currentPage = start / length;
+        int currentPage = startPage / pageLength;
         System.out.println("currentPage: " + currentPage);
 
         String sortName = "id";
@@ -88,11 +84,11 @@ public class CustomerController {
         System.out.println("sort: " + sort);
 
         Pageable pageRequest = PageRequest.of(currentPage,
-                length,
+                pageLength,
                 sort);
         System.out.println("pageRequest: " + pageRequest);
 
-        String queryString = (String) (params.get("search[value]"));
+        String queryString = (String) (params.get("searchTerm"));
 
         Page<Customer> customers = customerService.getCustomersForDatatable(queryString, pageRequest);
         System.out.println("customers: " + customers.toString());
@@ -119,7 +115,7 @@ public class CustomerController {
         Map<String, Object> jsonMap = new HashMap<>();
 
         jsonMap.put("draw", draw);
-        jsonMap.put("recordsTotal", totalRecords);
+        jsonMap.put("recordsTotal", customers.getTotalPages());
         jsonMap.put("recordsFiltered", totalRecords);
         jsonMap.put("data", cells);
 

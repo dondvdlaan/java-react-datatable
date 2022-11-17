@@ -2,7 +2,7 @@ import { ReactNode } from "react"
 
 interface Props{
     currentPage           : number,
-    rows                  : any,
+    totalPages            : any,
     rowsPerPage           : number
     onSetPage(page:number): void,
     children?             : ReactNode;
@@ -27,8 +27,9 @@ export const Pagination = (props:Props) =>{
     let activePage                = "page-item";
 
     // Calculate number of pages to display
-    const totalPages = Math.ceil(props.rows / props.rowsPerPage);
-    
+    // const totalPages = Math.ceil(props.rows / props.rowsPerPage);
+    const totalPages = props.totalPages;
+
     // Define previous button
     if (props.currentPage > 1) previous = props.currentPage -1;
     // Define next button   
@@ -57,6 +58,17 @@ export const Pagination = (props:Props) =>{
   <div className="container">
     <nav aria-label="Page navigation example">
       <ul className="pagination">
+
+        {/* First Page */}
+        <li 
+        className="page-item">
+          <button 
+            onClick   ={()=>props.onSetPage(1)} 
+            className ="page-link" >
+              1
+          </button>
+        </li>
+        
         {/* Previous button */}
         <li 
         className="page-item">
@@ -67,9 +79,7 @@ export const Pagination = (props:Props) =>{
           </button>
         </li> 
         
-        {/* // Page numbers displayed */}
-        {/* {pageNrsDisplayed.map(pageNr=>pageNr)} */}
-        
+        {/* // Page number displayed */}
         <li className="ppage-item disabled">
           <span className ="page-link">{props.currentPage}</span>
         </li>
@@ -81,6 +91,16 @@ export const Pagination = (props:Props) =>{
           onClick   ={()=>props.onSetPage(next)} 
           className ="page-link" >
             Next
+          </button>
+        </li>
+
+        {/* Last Page */}
+        <li 
+        className="page-item">
+          <button 
+            onClick   ={()=>props.onSetPage(props.totalPages)} 
+            className ="page-link" >
+              {props.totalPages}
           </button>
         </li>
       </ul>

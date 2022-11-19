@@ -5,7 +5,10 @@ import { Pagination } from '../shared/Pagination';
 import { Spinner } from '../shared/Spinner';
 import { Customer } from '../types/Customer';
 
-
+/**
+ * App to display the Datatable. Pagination and search in all columns come from
+ * Server side 
+ */
 function App() {
 
   // *** Constant and variables ***
@@ -22,21 +25,22 @@ function App() {
                                       = useApi("POST","all",initSettings);
   
  
-  if(!customers) return(<Spinner item="Loading Customers... " />)
+  if(!customers) return(<Spinner item="Customers... " />)
 
-  console.log("all ", customers);
-  console.log("rows ", rowsPerPage);
 
   // *** Functions ***
   const payload = ()=>({
     searchTerm,
     pageLength : rowsPerPage,
-    startPage : (page -1) * rowsPerPage
+    startPage : (page -1) 
   })
 
     // *** Components ***
+    /**
+     * Search window for Datatable
+     */
     const SearchDataTable = () =>(
-        <div className="panel-block">
+      <div className="panel-block">
         <p className="control has-icons-right">
           <input
             value={searchTerm}
@@ -60,16 +64,15 @@ function App() {
   const onChangeRowsPerPage = (e: React.ChangeEvent<HTMLSelectElement>) =>{
     setRowsPerPage(e.target.value);
 
-       // Create data payload
-    let data ={
+    // Create data payload
+    let payload ={
       pageLength : e.target.value, 
       startPage: 0,
       searchTerm: ""
     }
     // Send to server
-    apiSimple("POST","all", data)
+    apiSimple("POST","all", payload)
     .then(res=>{
-      console.log("res.data: ", res.data)
       setCustomers(res.data.data);
       setTotalPages(res.data.recordsTotal)
       setPage(1);
@@ -80,11 +83,10 @@ function App() {
    * Set page for Pagination
    */
    const onSetPage = (page: number) =>{
-    console.log("page: ", page)
     setPage(page);
 
     // Create data payload
-    let data ={...payload(), startPage : (page -1) * rowsPerPage}
+    let data ={...payload(), startPage : (page -1) }
     
     // Send to server
     apiSimple("POST","all", data)
@@ -98,14 +100,14 @@ function App() {
     setSearchTerm(e.target.value);
 
     // Create data payload
-    let data ={
+    let payload ={
       pageLength : arrRowsPerPage[0], 
       startPage: 0,
       searchTerm: e.target.value
     }
 
     // Send to server
-    apiSimple("POST","all", data)
+    apiSimple("POST","all", payload)
     .then(res=>{
       setCustomers(res.data.data);
       setTotalPages(res.data.recordsTotal)
@@ -117,8 +119,11 @@ function App() {
   return (
     <>
     <Navbar />
+
     	<div className="container mt-3 ">
         <div className="row">
+
+          {/* Window to change rows per page */}
           <div className="col">
             <div className="form-group"> 	
               <select 
@@ -133,6 +138,7 @@ function App() {
               </select>
             </div>
           </div>
+
           <div className="col text-end">
             <SearchDataTable />
           </div>
@@ -169,12 +175,13 @@ function App() {
           )}
       </tbody>
     </table>
-  </div> 
+  </div>
+
   <Pagination 
-  currentPage={page} 
-  totalPages={totalPages} 
-  rowsPerPage={rowsPerPage} 
-  onSetPage={onSetPage}
+    currentPage={page} 
+    totalPages={totalPages} 
+    rowsPerPage={rowsPerPage} 
+    onSetPage={onSetPage}
   /> 
 </>
 );

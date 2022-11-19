@@ -10,13 +10,14 @@ export type SetState<T> = Dispatch<SetStateAction<T>>;
 // *** Functions ***
 
 /*
- * Useful for http data as a dependency in rendering
+ * Custom Hook used each time the page is called up
  *
- * @param method [Method] - http method
- * @param path [string]   - relative path to baseUrl
- * @return, Response Data
+ * @param method [Method]         - http method
+ * @param path [string]           - relative path to baseUrl
+ * @param payload [json object]   - optional data to be sent in case of POST
+ * @return, Response Data         - 2 data sets to be destructured
  */
-export function useApi<T> (method: Method,path: string, payload = {} )
+export function useApi<T> (method: Method, path: string, payload = {} )
                           : [T | undefined, SetState<T | undefined>, T | undefined, SetState<T | undefined>] {
 
   const [data, setData]               = useState<T>();
@@ -35,7 +36,8 @@ export function useApi<T> (method: Method,path: string, payload = {} )
 }
 
 /*
- * This useApi2 function was copied from useApi above and changed as follows:
+ * Custom Hook with if condition before requesting data:
+ *
  * - default state is an empty array[], so the map function in jsx is not stuck
  * - an if condition within the useEffect was added, which causes the useApi2 to 
  * wait till the condition arrives
@@ -58,8 +60,9 @@ export function useApi2<T>(path: string, condition: string)
 
   return [data, setData];
 }
+
 /*
- * Useful for calls on events or with conditions
+ * Api to be called mainly from event handlers
  *
  * @param   method  [Method]  - http method
  * @param   path    [string]  - relative path to baseUrl
@@ -91,11 +94,13 @@ export function api<T>(
 }
 
 /**
- *  Simplified API
+ * Simplified API which returns data directly to calling function. Return data to
+ * be extracted with promise chain ".then" 
  * 
  * @param   method  [Method]  - http method
  * @param   path    [string]  - relative path to baseUrl
  * @param   data    [object]  - body data
+ * @return  data    [Promise] - Promise chain ".then"
  */
 export function apiSimple<T>(
   method: Method,

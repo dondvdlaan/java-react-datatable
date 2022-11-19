@@ -21,8 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Controller for receiving and sending requests for Customer data
+ */
 @CrossOrigin
 @RestController
+@RequestMapping("/customer")
 public class CustomerController {
 
     // *** Constants ***
@@ -34,6 +38,7 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
+    // *** Constructor ***
     public CustomerController(CustomerRepository repository, CustomerService customerService) {
         this.repository = repository;
         this.customerService = customerService;
@@ -41,30 +46,24 @@ public class CustomerController {
 
     // *** Routing ***
     /**
-     * Returns all customers
+     * Returns customers data based on pagination and search requests
      *
-     * @return allCustomers Iterable     : all customers
+     * @return json [String]    : customer data in json format
      */
-    //@GetMapping("/customer/all")
-    @PostMapping("/customer/all")
+    @PostMapping("/all")
     @ResponseBody
     public String getAll(@RequestBody Map<String, Object> params) {
 
         System.out.println("Route getDataForDatatable");
         System.out.println("params: " + params.toString());
-/*
-*/
-        int draw = params.containsKey("draw") ? Integer.parseInt(params.get("draw").toString()) : 1;
-        System.out.println("draw: " + draw);
-        int pageLength = params.containsKey("pageLength") ? Integer.parseInt(params.get("pageLength").toString()) : 30;
-        System.out.println("pageLength: " + pageLength);
-        int startPage = params.containsKey("startPage") ? Integer.parseInt(params.get("startPage").toString()) : 30;
-        System.out.println("startPage: " + startPage);
 
-        int currentPage = startPage / pageLength;
-        System.out.println("currentPage: " + currentPage);
+        // *** Constant and variables ***
+        int pageLength = params.containsKey("pageLength") ? Integer.parseInt(params.get("pageLength").toString()) : 30;
+        int startPage = params.containsKey("startPage") ? Integer.parseInt(params.get("startPage").toString()) : 30;
+        int currentPage = startPage ;
 
         String sortName = "id";
+        // Note : sort per columns not yet implemented!!
         /*
         String dataTableOrderColumnIdx = params.get("order[0][column]").toString();
         String dataTableOrderColumnName = "columns[" + dataTableOrderColumnIdx + "][data]";
@@ -73,23 +72,27 @@ public class CustomerController {
         System.out.println("sortName: " + sortName);
         String sortDir = params.containsKey("order[0][dir]") ? params.get("order[0][dir]").toString() : "asc";
         System.out.println("sortDir: " + sortDir);
-
         */
 
+        // Note : Sort direction ASC / DESC not yet implemented
         Sort.Order sortOrder = new Sort.Order((Sort.Direction.ASC), sortName);
        // Sort.Order sortOrder = new Sort.Order((sortDir.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC), sortName);
 
-        System.out.println("sortOrder: " + sortOrder);
         Sort sort = Sort.by(sortOrder);
-        System.out.println("sort: " + sort);
 
         Pageable pageRequest = PageRequest.of(currentPage,
                 pageLength,
                 sort);
-        System.out.println("pageRequest: " + pageRequest);
 
         String queryString = (String) (params.get("searchTerm"));
 
+        /**
+         *  Function for pagination and searching
+         *
+         * @param queryString [String]          : search term to be looked up
+         * @param pageRequest [Pageable]        : currentPage, pageLength and sort
+         * @return customers  [Page<Customer>]  : customers as per query and pagelength
+         */
         Page<Customer> customers = customerService.getCustomersForDatatable(queryString, pageRequest);
         System.out.println("customers: " + customers.toString());
 
@@ -97,7 +100,6 @@ public class CustomerController {
 
         List<Map<String, Object>> cells = new ArrayList<>();
         customers.forEach(customer -> {
-            System.out.println("customer: " + customer.toString());
 
             Map<String, Object> cellData = new HashMap<>();
             cellData.put("id", customer.getId());
@@ -108,26 +110,23 @@ public class CustomerController {
             cellData.put("city", customer.getCity());
             cellData.put("country", customer.getCountry());
             cellData.put("phoneNumber", customer.getPhoneNumber());
+
             cells.add(cellData);
         });
-        System.out.println("cells: " + cells);
-
+        // Put complete map together
         Map<String, Object> jsonMap = new HashMap<>();
 
-        jsonMap.put("draw", draw);
         jsonMap.put("recordsTotal", customers.getTotalPages());
         jsonMap.put("recordsFiltered", totalRecords);
         jsonMap.put("data", cells);
 
-        System.out.println("jsonMap: " + jsonMap);
-
+        // Convert to json
         String json = null;
         try {
             json = new ObjectMapper().writeValueAsString(jsonMap);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        System.out.println("json: " + json);
 
         return json;
     }

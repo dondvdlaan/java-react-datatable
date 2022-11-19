@@ -16,15 +16,15 @@ interface Props{
 export const Pagination = (props:Props) =>{
 
     // ************* Constants and variables ************* 
-    let pageNrsDisplayed          = [];
-    const maxPaginationDisplayed  = 3;
-    let previous                  = 1;
-    let pageNrDisplayed           = 
+    let pageNrsDisplayed                = [];
+    const maxPaginationDisplayed        = 3;
+    let previous                        = 1;
+    let pageNrDisplayed                 = 
     Math.floor((props.currentPage +1) / 
     maxPaginationDisplayed) * 
     maxPaginationDisplayed;
-    let next                      = props.currentPage;
-    let activePage                = "page-item";
+    let next                            = props.currentPage;
+    let activePage                      = "page-item";
 
     // Calculate number of pages to display
     // const totalPages = Math.ceil(props.rows / props.rowsPerPage);
@@ -34,24 +34,6 @@ export const Pagination = (props:Props) =>{
     if (props.currentPage > 1) previous = props.currentPage -1;
     // Define next button   
     if (props.currentPage < totalPages) next = props.currentPage +1 ;
-    console.log("next:", next)
-
-    for (let i = 1; i <= totalPages ; i++) {
-        
-      // Highlight currentPage    
-      activePage = ((props.currentPage) === i)? "page-item active": "page-item";
-
-      // Configure page number component with button incorporated
-      pageNrsDisplayed.push( 
-      <li 
-      key         ={i} 
-      className   ={activePage}>
-        <button 
-        onClick   ={()=>props.onSetPage(i)} 
-        className = "page-link" >{i}
-        </button>
-      </li>)
-    }
 
   return(
   
@@ -80,7 +62,7 @@ export const Pagination = (props:Props) =>{
         </li> 
         
         {/* // Page number displayed */}
-        <li className="ppage-item disabled">
+        <li className="page-item disabled">
           <span className ="page-link">{props.currentPage}</span>
         </li>
 
